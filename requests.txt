@@ -1,5 +1,5 @@
 curl --location 'http://127.0.0.1:4001/db/execute?pretty=null&timings=null' \
 --header 'Content-Type: application/json' \
 --data '[
-    "CREATE TABLE message (url TEXT, notified INTEGER DEFAULT 0 NOT NULL UNIQUE)"
+    "CREATE TABLE message (url TEXT UNIQUE, notified INTEGER DEFAULT 0 NOT NULL)"
 ]'
