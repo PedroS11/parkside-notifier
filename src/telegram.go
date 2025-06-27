@@ -35,15 +35,14 @@ func SendMediaGroup(b *bot.Bot, ctx context.Context, c interfaces.Card) {
 
 	fmt.Println(media1)
 
-	// _, err := b.SendMediaGroup(ctx, &bot.SendMediaGroupParams{
-	// 	ChatID: os.Getenv("CHANNEL_ID"),
-	// 	Media: []models.InputMedia{
-	// 		media1,
-	// 	},
-	// })
+	_, err := b.SendMediaGroup(ctx, &bot.SendMediaGroupParams{
+		ChatID: os.Getenv("CHANNEL_ID"),
+		Media: []models.InputMedia{
+			media1,
+		},
+	})
 
-	// if err != nil {
-	// 	fmt.Println("ERROR", err.Error())
-	// }
-
+	if err != nil {
+		fmt.Println("ERROR", err.Error())
+	}
 }

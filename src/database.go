@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 
 	rqlitehttp "github.com/rqlite/rqlite-go-http"
 )
 
 func CreateClient() *rqlitehttp.Client {
-	client, err := rqlitehttp.NewClient("http://myrqlite-host-1:4001", nil)
+	client, err := rqlitehttp.NewClient("http://" + os.Getenv("HTTP_ADDR"), nil)
 	if err != nil {
 		panic(err)
 	}
