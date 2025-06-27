@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  rqlite:
+      ports:
+        - 4001:4001
+      image: rqlite/rqlite
+      volumes:
+        - ./data:/rqlite/file/data
+  
+  parkside-notifier:
+    image: "parkside-notifier"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080" 
+    restart: unless-stopped
+    depends_on: 
+      - rqlite
+    env_file: .env
+ 
