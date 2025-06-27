@@ -9,7 +9,7 @@ import (
 )
 
 func CreateClient() *rqlitehttp.Client {
-	client, err := rqlitehttp.NewClient("http://localhost:4001", nil)
+	client, err := rqlitehttp.NewClient("http://myrqlite-host-1:4001", nil)
 	if err != nil {
 		panic(err)
 	}

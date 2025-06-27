@@ -2,11 +2,25 @@ version: '3'
 
 services:
   rqlite:
-      ports:
-        - 4001:4001
-      image: rqlite/rqlite
+      image: rqlite/rqlite:latest
+      container_name: myrqlite-container-1
+      hostname: myrqlite-host-1
       volumes:
         - ./data:/rqlite/file/data
+      ports:
+        - "4001:4001"
+        - "4002:4002"
+      environment:
+        NODE_ID: myrqlite-node-1
+        HTTP_ADDR: myrqlite-host-1:4001
+        RAFT_ADDR: myrqlite-host-1:4002
+        SQLITE_EXTENSIONS: "sqlean,sqlite-vec,misc"
+      healthcheck:
+        test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://myrqlite-host-1:4001/status"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+        start_period: 30s
   
   parkside-notifier:
     image: "parkside-notifier"
