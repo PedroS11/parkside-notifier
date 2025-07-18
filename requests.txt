@@ -3,3 +3,9 @@ curl --location 'http://127.0.0.1:4001/db/execute?pretty=null&timings=null' \
 --data '[
     "CREATE TABLE message (url TEXT UNIQUE, notified INTEGER DEFAULT 0 NOT NULL)"
 ]'
+
+curl --location 'http://127.0.0.1:4001/db/execute?pretty=null&timings=null' \
+--header 'Content-Type: application/json' \
+--data '[
+    "DROP TABLE message"
+]'
