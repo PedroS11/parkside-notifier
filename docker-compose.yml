@@ -5,6 +5,7 @@ services:
       image: rqlite/rqlite:latest
       container_name: myrqlite-container-1
       hostname: myrqlite-host-1
+      restart: unless-stopped
       volumes:
         - ./data:/rqlite/file/data
       ports:
