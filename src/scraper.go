@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"parksideNotifier/interfaces"
+	"parksideNotifier/src/interfaces"
 	"strings"
 
 	"github.com/gocolly/colly"

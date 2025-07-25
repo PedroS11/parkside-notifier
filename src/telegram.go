@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"parksideNotifier/interfaces"
+	"parksideNotifier/src/interfaces"
 	"time"
 
 	"github.com/go-telegram/bot"
