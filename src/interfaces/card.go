@@ -1,8 +1,9 @@
 package interfaces
 
-type Card struct {
-	Url  string
-	Name string
-	Date string
-	Img  string
+type Flyer struct {
+	Url          string
+	Name         string
+	Date         string
+	PreviewImage string
+	Images       []string
 }

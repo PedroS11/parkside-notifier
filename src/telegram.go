@@ -26,9 +26,9 @@ func Start(ctx context.Context) (*bot.Bot, context.Context) {
 	return b, ctx
 }
 
-func SendMediaGroup(b *bot.Bot, ctx context.Context, c interfaces.Card) {
+func SendMediaGroup(b *bot.Bot, ctx context.Context, c interfaces.Flyer) {
 	media1 := &models.InputMediaPhoto{
-		Media:     c.Img,
+		Media:     c.PreviewImage,
 		Caption:   c.Date + " veja [" + c.Name + "](" + c.Url + ")",
 		ParseMode: models.ParseModeMarkdownV1,
 	}

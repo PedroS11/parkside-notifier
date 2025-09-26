@@ -2,77 +2,102 @@ package main
 
 import (
 	"fmt"
+	"parksideNotifier/src/interfaces"
 	"strings"
+	"sync"
+	"time"
 
-	"github.com/gocolly/colly"
+	"github.com/go-rod/rod"
 )
 
-func GetParksideCards() []string {
-	urls := getFlyerUrls()
+func crawlFlyers() []interfaces.Flyer {
+	page := rod.New().NoDefaultDevice().MustConnect().MustPage("https://www.lidl.pt/c/folhetos/s10020672")
+	page.MustWindowFullscreen()
+
+	page.MustElement("#onetrust-reject-all-handler").MustClick()
+	// Get just the first one as it's Semanais
+	subCategory := page.MustElement(".subcategory")
+	promotionCards := subCategory.MustElements("a")
+
+	var cards []interfaces.Flyer
+
+	for _, promotionCard := range promotionCards {
+		url := promotionCard.MustProperty("href").String()
+		viewUrl := strings.Replace(url, "/ar/0", "/view/flyer/page/1", 1)
+		card := interfaces.Flyer{
+			Url:          viewUrl,
+			Name:         promotionCard.MustElement(".flyer__name").MustText(),
+			PreviewImage: promotionCard.MustElement(".flyer__image").MustProperty("src").String(),
+			Date:         promotionCard.MustElement(".flyer__title").MustText(),
+		}
+
+		cards = append(cards, card)
+	}
+
+	return cards
+}
+
+func parseFlyer(flyerUrl string) []string {
+	page := rod.New().NoDefaultDevice().MustConnect().MustPage(flyerUrl)
+	page.MustWindowFullscreen()
+
+	// Reject cookies
+	page.MustElement("#onetrust-reject-all-handler").MustClick()
+
+	var urls []string
+
+	for {
+		flyerPages := page.MustElements(".page--current")
+		foundFinalPage := false
+		var nextPage *rod.Element
+
+		fmt.Println("\n\nCrawling", page.MustInfo().URL)
+
+		for _, flyer := range flyerPages {
+			url := flyer.MustElement("img").MustProperty("src")
+			urls = append(urls, ImageToBase64(url.String()))
+
+			navigationArrows, _ := page.Timeout(1 * time.Second).Elements(".button--navigation-lidl")
+			previousPageButtonText := *navigationArrows[0].MustAttribute("aria-label")
+
+			if len(navigationArrows) == 1 && previousPageButtonText == "Página anterior" {
+				foundFinalPage = true
+
+				break
+			}
+			// Get last arrow button, it will be the move forward one
+			// As i checked that when there's just one, it isn't the move backwards one
+			nextPage = navigationArrows[len(navigationArrows)-1]
+		}
+
+		if foundFinalPage {
+			break
+		}
+
+		nextPage.MustClick()
+	}
 
 	return urls
+
+	// time.Sleep(time.Hour)
 }
 
-func getFlyerUrls() []string {
-	c := colly.NewCollector(
-		colly.AllowedDomains("www.lidl.pt"),
-	)
+func GetFlyers() []interfaces.Flyer {
+	flyers := crawlFlyers()
 
-	var flyerUrls []string
+	var wg sync.WaitGroup
 
-	// triggered when the scraper encounters an error
-	c.OnError(func(_ *colly.Response, err error) {
-		fmt.Println("Something went wrong: ", err)
-	})
+	for i := range flyers {
+		wg.Add(1)
+		go func(flyer *interfaces.Flyer) {
+			defer wg.Done()
 
-	isSemanaisFound := false
+			images := parseFlyer(flyer.Url)
+			flyer.Images = images
+		}(&flyers[i])
+	}
 
-	// triggered when a CSS selector matches an element
-	c.OnHTML(".subcategory", func(e *colly.HTMLElement) {
-		if !isSemanaisFound {
-			// printing all URLs associated with the <a> tag on the page
-			e.ForEach("a", func(i int, h *colly.HTMLElement) {
-				fmt.Println(i, h.Attr("href"))
-				flyerUrls = append(flyerUrls, strings.Replace(h.Attr("href"), "/ar/0", "/view/flyer/page/1", 1))
-			})
-			isSemanaisFound = true
-		}
-	})
+	wg.Wait()
 
-	c.OnScraped(func(r *colly.Response) {
-		fmt.Println(r.Request.URL, " scraped!")
-	})
-
-	c.Visit("https://www.lidl.pt/c/folhetos/s10020672")
-
-	return flyerUrls
-}
-
-func ParseFlyer22(url string) {
-	c := colly.NewCollector(
-		colly.AllowedDomains("www.lidl.pt"),
-	)
-
-	// triggered when the scraper encounters an error
-	c.OnError(func(_ *colly.Response, err error) {
-		fmt.Println("Something went wrong: ", err)
-	})
-
-	// triggered when a CSS selector matches an element
-	c.OnHTML(".page__wrapper", func(e *colly.HTMLElement) {
-		// printing all URLs associated with the <a> tag on the page
-		e.ForEach("img", func(i int, h *colly.HTMLElement) {
-			fmt.Println(i, h.Attr("src"))
-		})
-	})
-
-	c.OnResponse(func(r *colly.Response) {
-		fmt.Println("Got a response from", string(r.Body))
-	})
-
-	c.OnScraped(func(r *colly.Response) {
-		fmt.Println(r.Request.URL, " scraped!")
-	})
-
-	c.Visit(url)
+	return flyers
 }
