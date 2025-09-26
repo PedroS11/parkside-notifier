@@ -2,29 +2,56 @@ package main
 
 import (
 	"fmt"
-	"parksideNotifier/src/interfaces"
 	"strings"
 
 	"github.com/gocolly/colly"
 )
 
-func filterParkside(cards []interfaces.Card) []interfaces.Card {
-	result := make([]interfaces.Card, 0)
-	for _, card := range cards {
-		if strings.Contains(strings.ToLower(card.Name), "parkside") || strings.Contains(strings.ToLower(card.Name), "ferramenta") {
-			result = append(result, card)
-		}
-	}
+func GetParksideCards() []string {
+	urls := getFlyerUrls()
 
-	return result
+	return urls
 }
 
-func GetParksideCards() []interfaces.Card {
+func getFlyerUrls() []string {
 	c := colly.NewCollector(
 		colly.AllowedDomains("www.lidl.pt"),
 	)
 
-	var cards []interfaces.Card
+	var flyerUrls []string
+
+	// triggered when the scraper encounters an error
+	c.OnError(func(_ *colly.Response, err error) {
+		fmt.Println("Something went wrong: ", err)
+	})
+
+	isSemanaisFound := false
+
+	// triggered when a CSS selector matches an element
+	c.OnHTML(".subcategory", func(e *colly.HTMLElement) {
+		if !isSemanaisFound {
+			// printing all URLs associated with the <a> tag on the page
+			e.ForEach("a", func(i int, h *colly.HTMLElement) {
+				fmt.Println(i, h.Attr("href"))
+				flyerUrls = append(flyerUrls, strings.Replace(h.Attr("href"), "/ar/0", "/view/flyer/page/1", 1))
+			})
+			isSemanaisFound = true
+		}
+	})
+
+	c.OnScraped(func(r *colly.Response) {
+		fmt.Println(r.Request.URL, " scraped!")
+	})
+
+	c.Visit("https://www.lidl.pt/c/folhetos/s10020672")
+
+	return flyerUrls
+}
+
+func ParseFlyer22(url string) {
+	c := colly.NewCollector(
+		colly.AllowedDomains("www.lidl.pt"),
+	)
 
 	// triggered when the scraper encounters an error
 	c.OnError(func(_ *colly.Response, err error) {
@@ -32,24 +59,20 @@ func GetParksideCards() []interfaces.Card {
 	})
 
 	// triggered when a CSS selector matches an element
-	c.OnHTML(".AHeroStageItems__List", func(e *colly.HTMLElement) {
+	c.OnHTML(".page__wrapper", func(e *colly.HTMLElement) {
 		// printing all URLs associated with the <a> tag on the page
-		e.ForEach("li", func(i int, h *colly.HTMLElement) {
-			card := interfaces.Card{
-				Url:  h.ChildAttr("a", "href"),
-				Name: h.ChildText(".AHeroStageItems__Item--Headline"),
-				Date: h.ChildText(".AHeroStageItems__Item--SubHeadline"),
-				Img:  "https://lidl.pt" + h.ChildAttr("img", "src"),
-			}
-			cards = append(cards, card)
+		e.ForEach("img", func(i int, h *colly.HTMLElement) {
+			fmt.Println(i, h.Attr("src"))
 		})
+	})
+
+	c.OnResponse(func(r *colly.Response) {
+		fmt.Println("Got a response from", string(r.Body))
 	})
 
 	c.OnScraped(func(r *colly.Response) {
 		fmt.Println(r.Request.URL, " scraped!")
 	})
 
-	c.Visit("https://www.lidl.pt")
-
-	return filterParkside(cards)
+	c.Visit(url)
 }
