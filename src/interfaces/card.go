@@ -1,9 +1,9 @@
 package interfaces
 
 type Flyer struct {
-	Url          string
-	Name         string
-	Date         string
-	PreviewImage string
-	Images       []string
+	Url          string   `json:"url"`
+	Name         string   `json:"name"`
+	Date         string   `json:"date"`
+	PreviewImage string   `json:"preview_image"`
+	Images       []string `json:"images"`
 }
