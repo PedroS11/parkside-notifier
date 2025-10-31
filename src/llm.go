@@ -34,15 +34,15 @@ func GetProductsWithOpenAI(imageUrls []string) []interfaces.Product {
 		})
 	}
 
-	input := interfaces.OpenAIInput{
-		Role:    "user",
-		Content: content,
-	}
-
 	request := interfaces.OpenAIRequest{
 		Model:        "gpt-4o-mini",
 		Instructions: "Return only a JSON array of all products. Each product should have a name and price. Expected response format: [{\"name\":\"Product 1\",\"price\":100}]. Make sure the output is a single string of the JSON array, not raw JSON or with the json word",
-		Input:        []interfaces.OpenAIInput{input},
+		Input: []interfaces.OpenAIInput{
+			{
+				Role:    "user",
+				Content: content,
+			},
+		},
 	}
 
 	jsonData, err := json.Marshal(request)

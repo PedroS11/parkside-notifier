@@ -5,7 +5,7 @@ go 1.24.1
 require (
 	github.com/go-co-op/gocron/v2 v2.16.2
 	github.com/go-rod/rod v0.116.2
-	github.com/go-telegram/bot v1.15.0
+	github.com/go-telegram/bot v1.17.0
 	github.com/joho/godotenv v1.5.1
 	github.com/openai/openai-go/v2 v2.7.1
 	github.com/rqlite/rqlite-go-http v0.0.0-20250509140802-69b71d7b23fd

@@ -11,3 +11,27 @@ func CleanJsonString(json string) string {
 
 	return strings.Trim(cleanedString, "'")
 }
+
+func EscapeMarkdownV2(s string) string {
+	replacer := strings.NewReplacer(
+		"_", "\\_",
+		"*", "\\*",
+		"[", "\\[",
+		"]", "\\]",
+		"(", "\\(",
+		")", "\\)",
+		"~", "\\~",
+		"`", "\\`",
+		">", "\\>",
+		"#", "\\#",
+		"+", "\\+",
+		"-", "\\-",
+		"=", "\\=",
+		"|", "\\|",
+		"{", "\\{",
+		"}", "\\}",
+		".", "\\.",
+		"!", "\\!",
+	)
+	return replacer.Replace(s)
+}

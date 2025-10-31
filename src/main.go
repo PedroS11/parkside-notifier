@@ -1,15 +1,18 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"os"
+	"os/signal"
 	"time"
 
 	_ "github.com/joho/godotenv/autoload"
 )
 
 func getFlyersAndNotify() {
-	// ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
-	// defer cancel()
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
 
 	// client := CreateClient()
 
@@ -17,21 +20,25 @@ func getFlyersAndNotify() {
 
 	fmt.Println("Found", len(flyers), "flyers")
 
-	// bot, ctx := Start(ctx)
+	bot, ctx := Start(ctx)
 
 	for i, flyer := range flyers {
 
 		products := GetProductsWithOpenAI(flyer.Images)
 
-		if len(products) == 0 {
-			fmt.Printf("Flyer %s has no Parkside products", flyer.Url)
-		} else {
-			flyer.Products = append(flyer.Products, products...)
-			fmt.Printf("Flyer %s has %v\n", flyer.Url, flyer.Products)
-		}
+		// Sleep 1min to avoid open ai returning 429 - Too Many Requests error
 		if i < len(flyers)-1 {
 			time.Sleep(time.Minute)
 		}
+
+		if len(products) == 0 {
+			fmt.Printf("Flyer %s has no Parkside products", flyer.Url)
+			continue
+		}
+
+		flyer.Products = append(flyer.Products, products...)
+		fmt.Printf("Flyer %s has %v\n", flyer.Url, flyer.Products)
+
 		// isNotified, err := WasUrlNotified(client, ctx, flyer.Url)
 
 		// if err != nil {
@@ -41,7 +48,7 @@ func getFlyersAndNotify() {
 
 		// // Only call SendMediaGroup if the URL was not notified
 		// if !isNotified {
-		// 	SendMediaGroup(bot, ctx, flyer)
+		SendMediaGroup(bot, ctx, flyer)
 		// }
 	}
 
