@@ -21,7 +21,10 @@ func crawlFlyers() []interfaces.Flyer {
 
 	var cards []interfaces.Flyer
 
-	for _, promotionCard := range promotionCards {
+	for i, promotionCard := range promotionCards {
+		if i == 0 {
+			continue
+		}
 		url := promotionCard.MustProperty("href").String()
 		viewUrl := strings.Replace(url, "/ar/0", "/view/flyer/page/1", 1)
 		card := interfaces.Flyer{
@@ -29,6 +32,8 @@ func crawlFlyers() []interfaces.Flyer {
 			Name:         promotionCard.MustElement(".flyer__name").MustText(),
 			PreviewImage: promotionCard.MustElement(".flyer__image").MustProperty("src").String(),
 			Date:         promotionCard.MustElement(".flyer__title").MustText(),
+			Images:       []string{},
+			Products:     []interfaces.Product{},
 		}
 
 		cards = append(cards, card)
@@ -44,7 +49,7 @@ func parseFlyer(flyerUrl string) []string {
 	// Reject cookies
 	page.MustElement("#onetrust-reject-all-handler").MustClick()
 
-	var urls []string
+	var flyerPageUrls []string
 
 	for {
 		flyerPages := page.MustElements(".page--current")
@@ -55,15 +60,18 @@ func parseFlyer(flyerUrl string) []string {
 
 		for _, flyer := range flyerPages {
 			url := flyer.MustElement("img").MustProperty("src")
-			urls = append(urls, ImageToBase64(url.String()))
+			flyerPageUrls = append(flyerPageUrls, url.String())
 
 			navigationArrows, _ := page.Timeout(1 * time.Second).Elements(".button--navigation-lidl")
-			previousPageButtonText := *navigationArrows[0].MustAttribute("aria-label")
 
-			if len(navigationArrows) == 1 && previousPageButtonText == "Página anterior" {
-				foundFinalPage = true
+			if len(navigationArrows) == 1 {
+				previousPageButtonText := *navigationArrows[0].MustAttribute("aria-label")
+				if previousPageButtonText == "Página anterior" {
 
-				break
+					foundFinalPage = true
+
+					break
+				}
 			}
 			// Get last arrow button, it will be the move forward one
 			// As i checked that when there's just one, it isn't the move backwards one
@@ -77,7 +85,7 @@ func parseFlyer(flyerUrl string) []string {
 		nextPage.MustClick()
 	}
 
-	return urls
+	return flyerPageUrls
 
 	// time.Sleep(time.Hour)
 }

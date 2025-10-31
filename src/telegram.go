@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"parksideNotifier/src/interfaces"
+	"strings"
 	"time"
 
 	"github.com/go-telegram/bot"
@@ -26,17 +27,25 @@ func Start(ctx context.Context) (*bot.Bot, context.Context) {
 	return b, ctx
 }
 
-func SendMediaGroup(b *bot.Bot, ctx context.Context, c interfaces.Flyer) {
-	media1 := &models.InputMediaPhoto{
-		Media:     c.PreviewImage,
-		Caption:   c.Date + " veja [" + c.Name + "](" + c.Url + ")",
+func SendMediaGroup(b *bot.Bot, ctx context.Context, flyer interfaces.Flyer) {
+	template := "Dia %s no folheto [%s](%s), existirão os seguintes produtos Parkside: %s"
+
+	productsName := []string{}
+
+	for _, product := range flyer.Products {
+		productsName = append(productsName, product.Name)
+	}
+
+	mediaMessage := &models.InputMediaPhoto{
+		Media:     flyer.PreviewImage,
+		Caption:   fmt.Sprintf(template, flyer.Date, flyer.Name, flyer.Url, strings.Join(productsName, ",")),
 		ParseMode: models.ParseModeMarkdownV1,
 	}
 
 	_, err := b.SendMediaGroup(ctx, &bot.SendMediaGroupParams{
 		ChatID: os.Getenv("CHANNEL_ID"),
 		Media: []models.InputMedia{
-			media1,
+			mediaMessage,
 		},
 	})
 
