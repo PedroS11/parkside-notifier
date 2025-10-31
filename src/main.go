@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	_ "github.com/joho/godotenv/autoload"
 )
@@ -14,23 +15,23 @@ func getFlyersAndNotify() {
 
 	flyers := GetFlyers()
 
+	fmt.Println("Found", len(flyers), "flyers")
+
 	// bot, ctx := Start(ctx)
 
-	for _, flyer := range flyers {
-		for i, image := range flyer.Images {
+	for i, flyer := range flyers {
 
-			fmt.Println("Idx", i, "of", len(flyer.Images))
-			products := GetProductsWithOpenAI(image)
+		products := GetProductsWithOpenAI(flyer.Images)
 
-			if len(products) == 0 {
-				fmt.Printf("Flyer %s has no Parkside products", flyer.Url)
-				continue
-			}
+		if len(products) == 0 {
+			fmt.Printf("Flyer %s has no Parkside products", flyer.Url)
+		} else {
 			flyer.Products = append(flyer.Products, products...)
+			fmt.Printf("Flyer %s has %v\n", flyer.Url, flyer.Products)
 		}
-
-		fmt.Printf("Flyer %s has %v Parkside products\n", flyer.Url, flyer.Products)
-
+		if i < len(flyers)-1 {
+			time.Sleep(time.Minute)
+		}
 		// isNotified, err := WasUrlNotified(client, ctx, flyer.Url)
 
 		// if err != nil {
@@ -42,6 +43,10 @@ func getFlyersAndNotify() {
 		// if !isNotified {
 		// 	SendMediaGroup(bot, ctx, flyer)
 		// }
+	}
+
+	for _, flyer := range flyers {
+		fmt.Printf("Flyer %s on %s has %v\n", flyer.Name, flyer.Url, flyer.Products)
 	}
 }
 

@@ -8,10 +8,9 @@ import (
 	"net/http"
 	"os"
 	"parksideNotifier/src/interfaces"
-	"strings"
 )
 
-func GetProductsWithOpenAI(imageUrl string) []interfaces.Product {
+func GetProductsWithOpenAI(imageUrls []string) []interfaces.Product {
 	apiKey := os.Getenv("OPENAI_API_KEY")
 	if apiKey == "" {
 		fmt.Println("Warning: OPENAI_API_KEY environment variable not set")
@@ -24,17 +23,20 @@ func GetProductsWithOpenAI(imageUrl string) []interfaces.Product {
 		Text: "Analyze this flyer of products, if there're any products from brand Parkside. If no products are found, return an empty array.",
 	}
 
-	imageContent := interfaces.OpenAIImageContent{
-		Type:     "input_image",
-		ImageURL: imageUrl,
+	content := []interface{}{
+		textContent,
+	}
+
+	for _, imageUrl := range imageUrls {
+		content = append(content, interfaces.OpenAIImageContent{
+			Type:     "input_image",
+			ImageURL: imageUrl,
+		})
 	}
 
 	input := interfaces.OpenAIInput{
-		Role: "user",
-		Content: []interface{}{
-			textContent,
-			imageContent,
-		},
+		Role:    "user",
+		Content: content,
 	}
 
 	request := interfaces.OpenAIRequest{
@@ -99,19 +101,17 @@ func GetProductsWithOpenAI(imageUrl string) []interfaces.Product {
 		return []interfaces.Product{}
 	}
 
-	// Response comes as '[{"name":"Parksidе Aspirador/ Soprador de Folhas Elétrico 2600 W","price":29.99}]' so we need to remote the extra '
-	content := strings.Trim(openaiResponse.Output[0].Content[0].Text, "'")
-	fmt.Printf("OpenAI Response: %s\n", content)
+	// Response sometimes comes as ```json'[{"name":"Parksidе Aspirador/ Soprador de Folhas Elétrico 2600 W","price":29.99}]'``` so we need to clean it
+	jsonProducts := CleanJsonString(openaiResponse.Output[0].Content[0].Text)
+	fmt.Printf("OpenAI Response: %s\n", jsonProducts)
 
 	// Parse the JSON response
 	var products []interfaces.Product
-	err = json.Unmarshal([]byte(content), &products)
+	err = json.Unmarshal([]byte(jsonProducts), &products)
 	if err != nil {
 		fmt.Printf("Error parsing product JSON from OpenAI: %v\n", err)
 		os.Exit(1)
 	}
-
-	fmt.Printf("URL %sProducts: %v\n", imageUrl, products)
 
 	return products
 }

@@ -21,10 +21,7 @@ func crawlFlyers() []interfaces.Flyer {
 
 	var cards []interfaces.Flyer
 
-	for i, promotionCard := range promotionCards {
-		if i == 0 {
-			continue
-		}
+	for _, promotionCard := range promotionCards {
 		url := promotionCard.MustProperty("href").String()
 		viewUrl := strings.Replace(url, "/ar/0", "/view/flyer/page/1", 1)
 		card := interfaces.Flyer{
@@ -36,7 +33,9 @@ func crawlFlyers() []interfaces.Flyer {
 			Products:     []interfaces.Product{},
 		}
 
-		cards = append(cards, card)
+		if card.Name == "Novidades" {
+			cards = append(cards, card)
+		}
 	}
 
 	return cards
@@ -86,8 +85,6 @@ func parseFlyer(flyerUrl string) []string {
 	}
 
 	return flyerPageUrls
-
-	// time.Sleep(time.Hour)
 }
 
 func GetFlyers() []interfaces.Flyer {
