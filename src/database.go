@@ -10,7 +10,7 @@ import (
 )
 
 func CreateClient() *rqlitehttp.Client {
-	client, err := rqlitehttp.NewClient("http://" + os.Getenv("HTTP_ADDR"), nil)
+	client, err := rqlitehttp.NewClient("http://"+os.Getenv("HTTP_ADDR"), nil)
 	if err != nil {
 		panic(err)
 	}
@@ -25,6 +25,7 @@ func WasUrlNotified(client *rqlitehttp.Client, ctx context.Context, url string) 
 			PositionalParams: []any{url},
 		},
 	}, nil)
+
 	if err != nil {
 		fmt.Println("ERROR", err.Error())
 		return false, err
