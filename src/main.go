@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/signal"
 	"time"
@@ -18,14 +19,18 @@ func getFlyersAndNotify() {
 
 	flyers := GetFlyers()
 
-	fmt.Println("Found", len(flyers), "flyers")
+	slog.Info(fmt.Sprintln("Found", len(flyers), "flyers"))
 
 	bot, ctx := Start(ctx)
 
 	for i, flyer := range flyers {
 		products, err := GetProductsFromUrls(flyer.Images)
 		if err != nil {
-			fmt.Printf("Error getting products from URLs: %v\n", err.Error())
+			errorMessage := fmt.Sprintln("Error getting products from URLs:", err.Error())
+
+			slog.Error(errorMessage)
+			SendErrorMessage(bot, ctx, errorMessage)
+
 			continue
 		}
 
@@ -35,17 +40,21 @@ func getFlyersAndNotify() {
 		}
 
 		if len(products) == 0 {
-			fmt.Printf("Flyer %s %s has no Parkside products\n", flyer.Name, flyer.Url)
+			slog.Warn(fmt.Sprintf("Flyer %s %s has no Parkside products", flyer.Name, flyer.Url))
 			continue
 		}
 
 		flyer.Products = append(flyer.Products, products...)
-		fmt.Printf("Flyer %s has %v\n", flyer.Url, flyer.Products)
+		slog.Info(fmt.Sprintf("Flyer %s has %v\n", flyer.Url, flyer.Products))
 
 		isNotified, err := WasUrlNotified(client, ctx, flyer.Url)
 
 		if err != nil {
-			fmt.Println("Error checking URL:", err.Error())
+			errorMessage := fmt.Sprintln("Error checking URL:", err.Error())
+
+			slog.Error(errorMessage)
+			SendErrorMessage(bot, ctx, errorMessage)
+
 			continue // Skip this card and move on to the next one
 		}
 
@@ -56,21 +65,23 @@ func getFlyersAndNotify() {
 	}
 
 	for _, flyer := range flyers {
-		fmt.Printf("Flyer %s on %s has %v\n", flyer.Name, flyer.Url, flyer.Products)
+		slog.Info(fmt.Sprintf("Flyer %s on %s has %v\n", flyer.Name, flyer.Url, flyer.Products))
 	}
 }
 
 func main() {
-	// create a scheduler
-	s, err := CreateCronJob(getFlyersAndNotify)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
+	getFlyersAndNotify()
+	// // create a scheduler
+	// s, err := CreateCronJob(getFlyersAndNotify)
+	// if err != nil {
+	// 	LogError("main", err)
+	// 	os.Exit(1)
+	// }
 
-	// start the scheduler
-	s.Start()
+	// // start the scheduler
+	// s.Start()
 
-	// block until you are ready to shut down
-	select {}
+	// // block until you are ready to shut down
+	// select {}
 }

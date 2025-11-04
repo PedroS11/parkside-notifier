@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log/slog"
 	"parksideNotifier/src/interfaces"
 	"strings"
 	"sync"
@@ -55,7 +55,7 @@ func parseFlyer(flyerUrl string) []string {
 		foundFinalPage := false
 		var nextPage *rod.Element
 
-		fmt.Println("\n\nCrawling", page.MustInfo().URL)
+		slog.Info("Crawling", slog.String("url", page.MustInfo().URL))
 
 		for _, flyer := range flyerPages {
 			url := flyer.MustElement("img").MustProperty("src")

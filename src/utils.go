@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log/slog"
 	"strings"
 )
 
@@ -34,4 +35,8 @@ func EscapeMarkdownV2(s string) string {
 		"!", "\\!",
 	)
 	return replacer.Replace(s)
+}
+
+func LogError(msg string, err error) {
+	slog.Error(msg, slog.Any("error", err))
 }

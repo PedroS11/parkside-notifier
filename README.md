@@ -25,3 +25,29 @@ curl --location 'http://127.0.0.1:4001/db/execute?pretty=null&timings=null' \
 
 5. Every day, the cron job will scrape the website and every new parkside sale will be sent to the channel
 
+## Local development
+
+1. On the docker-compose.yml, comment the go lang service and run
+
+#### Podman
+> podman compose up
+
+#### Docker
+> docker compose up
+
+
+2. Create the database by call this endpoint
+
+```
+curl --location 'http://127.0.0.1:4001/db/execute?pretty=null&timings=null' \
+--header 'Content-Type: application/json' \
+--data '[
+    "CREATE TABLE message (url TEXT UNIQUE, notified INTEGER DEFAULT 0 NOT NULL)"
+]'
+```
+
+3. Create an .env file like the .env.example one
+
+4. Run in the root folder
+> go run ./src
+

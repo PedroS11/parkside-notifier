@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 	"parksideNotifier/src/interfaces"
 
@@ -56,7 +57,7 @@ func GetProductsFromUrls(imageUrls []string) ([]interfaces.Product, error) {
 	})
 
 	if err != nil {
-		fmt.Printf("Error sending request to OpenAI: %v\n", err.Error())
+		slog.Error(fmt.Sprintf("Error sending request to OpenAI: %v\n", err.Error()))
 		return []interfaces.Product{}, err
 	}
 
@@ -68,7 +69,7 @@ func GetProductsFromUrls(imageUrls []string) ([]interfaces.Product, error) {
 	var products []interfaces.Product
 	err = json.Unmarshal([]byte(jsonProducts), &products)
 	if err != nil {
-		fmt.Printf("Error parsing product JSON %v from OpenAI: %v\n", jsonProducts, err)
+		slog.Error(fmt.Sprintf("Error parsing product JSON %v from OpenAI: %v\n", jsonProducts, err))
 		return []interfaces.Product{}, err
 	}
 

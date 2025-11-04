@@ -19,7 +19,7 @@ func Start(ctx context.Context) (*bot.Bot, context.Context) {
 	b, err := bot.New(os.Getenv("TELEGRAM_BOT_TOKEN"), opts...)
 
 	if err != nil {
-		fmt.Println("Error", err.Error())
+		LogError("Telegram Start", err)
 		os.Exit(1)
 	}
 
@@ -52,6 +52,17 @@ func SendMediaGroup(b *bot.Bot, ctx context.Context, flyer interfaces.Flyer) {
 	})
 
 	if err != nil {
-		fmt.Println("ERROR", err.Error())
+		LogError("ERROR", err)
+	}
+}
+
+func SendErrorMessage(b *bot.Bot, ctx context.Context, message string) {
+	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID: os.Getenv("DEBUG_CHANNEL_ID"),
+		Text:   fmt.Sprintln("Error", message),
+	})
+
+	if err != nil {
+		LogError("SendErrorMessage error", err)
 	}
 }
