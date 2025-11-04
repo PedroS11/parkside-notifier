@@ -45,6 +45,8 @@ func parseFlyer(flyerUrl string) []string {
 	page := rod.New().NoDefaultDevice().MustConnect().MustPage(flyerUrl)
 	page.MustWindowFullscreen()
 
+	slog.Info("Crawling", slog.String("url", flyerUrl))
+
 	// Reject cookies
 	page.MustElement("#onetrust-reject-all-handler").MustClick()
 
@@ -54,8 +56,6 @@ func parseFlyer(flyerUrl string) []string {
 		flyerPages := page.MustElements(".page--current")
 		foundFinalPage := false
 		var nextPage *rod.Element
-
-		slog.Info("Crawling", slog.String("url", page.MustInfo().URL))
 
 		for _, flyer := range flyerPages {
 			url := flyer.MustElement("img").MustProperty("src")

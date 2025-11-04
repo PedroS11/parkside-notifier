@@ -57,7 +57,7 @@ func insertUrl(client *rqlitehttp.Client, ctx context.Context, url string) (*rql
 	response, err := client.Execute(ctx, rqlitehttp.SQLStatements{
 		{
 			SQL:              "INSERT INTO message(url, notified) VALUES(?, ?)",
-			PositionalParams: []any{url, 1},
+			PositionalParams: []any{url, 0},
 		},
 	}, nil)
 
@@ -69,7 +69,32 @@ func insertUrl(client *rqlitehttp.Client, ctx context.Context, url string) (*rql
 	errored, _, errorMessage := response.HasError()
 
 	if errored {
-		fmt.Println(errorMessage)
+		LogError("insertUrl error", errors.New(errorMessage))
+		return nil, errors.New(errorMessage)
+	}
+
+	fmt.Printf("ExecuteResponse: %+v\n", response)
+
+	return response, nil
+}
+
+func UpdateMessage(client *rqlitehttp.Client, ctx context.Context, url string, notify int) (*rqlitehttp.ExecuteResponse, error) {
+	response, err := client.Execute(ctx, rqlitehttp.SQLStatements{
+		{
+			SQL:              "UPDATE message SET url = ? , notified = ?",
+			PositionalParams: []any{url, notify},
+		},
+	}, nil)
+
+	if err != nil {
+		LogError("DB UpdateMessage error", err)
+		return nil, err
+	}
+
+	errored, _, errorMessage := response.HasError()
+
+	if errored {
+		LogError("UpdateMessage error", errors.New(errorMessage))
 		return nil, errors.New(errorMessage)
 	}
 
