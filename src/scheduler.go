@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/go-co-op/gocron/v2"
@@ -10,13 +9,13 @@ import (
 func CreateCronJob(job func()) (gocron.Scheduler, error) {
 	s, err := gocron.NewScheduler()
 	if err != nil {
-		fmt.Println(err.Error())
+		LogError("Scheduler CreateCronJob", err)
 		return nil, err
 	}
 
 	_, err = s.NewJob(
 		gocron.DurationJob(
-			1*time.Minute,
+			24*time.Hour,
 		),
 		gocron.NewTask(
 			job,
@@ -24,7 +23,7 @@ func CreateCronJob(job func()) (gocron.Scheduler, error) {
 	)
 
 	if err != nil {
-		fmt.Println(err.Error())
+		LogError("Scheduler error:", err)
 		return nil, err
 	}
 

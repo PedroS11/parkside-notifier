@@ -1,55 +1,108 @@
 package main
 
 import (
-	"fmt"
+	"log/slog"
 	"parksideNotifier/src/interfaces"
 	"strings"
+	"sync"
+	"time"
 
-	"github.com/gocolly/colly"
+	"github.com/go-rod/rod"
 )
 
-func filterParkside(cards []interfaces.Card) []interfaces.Card {
-	result := make([]interfaces.Card, 0)
-	for _, card := range cards {
-		if strings.Contains(strings.ToLower(card.Name), "parkside") || strings.Contains(strings.ToLower(card.Name), "ferramenta") {
-			result = append(result, card)
+func crawlFlyers() []interfaces.Flyer {
+	page := rod.New().NoDefaultDevice().MustConnect().MustPage("https://www.lidl.pt/c/folhetos/s10020672")
+	page.MustWindowFullscreen()
+
+	page.MustElement("#onetrust-reject-all-handler").MustClick()
+	// Get just the first one as it's Semanais
+	subCategory := page.MustElement(".subcategory")
+	promotionCards := subCategory.MustElements("a")
+
+	var cards []interfaces.Flyer
+
+	for _, promotionCard := range promotionCards {
+		url := promotionCard.MustProperty("href").String()
+		viewUrl := strings.Replace(url, "/ar/0", "/view/flyer/page/1", 1)
+		card := interfaces.Flyer{
+			Url:          viewUrl,
+			Name:         promotionCard.MustElement(".flyer__name").MustText(),
+			PreviewImage: promotionCard.MustElement(".flyer__image").MustProperty("src").String(),
+			Date:         promotionCard.MustElement(".flyer__title").MustText(),
+			Images:       []string{},
+			Products:     []interfaces.Product{},
+		}
+
+		if card.Name == "Novidades" {
+			cards = append(cards, card)
 		}
 	}
 
-	return result
+	return cards
 }
 
-func GetParksideCards() []interfaces.Card {
-	c := colly.NewCollector(
-		colly.AllowedDomains("www.lidl.pt"),
-	)
+func parseFlyer(flyerUrl string) []string {
+	page := rod.New().NoDefaultDevice().MustConnect().MustPage(flyerUrl)
+	page.MustWindowFullscreen()
 
-	var cards []interfaces.Card
+	slog.Info("Crawling", slog.String("url", flyerUrl))
 
-	// triggered when the scraper encounters an error
-	c.OnError(func(_ *colly.Response, err error) {
-		fmt.Println("Something went wrong: ", err)
-	})
+	// Reject cookies
+	page.MustElement("#onetrust-reject-all-handler").MustClick()
 
-	// triggered when a CSS selector matches an element
-	c.OnHTML(".AHeroStageItems__List", func(e *colly.HTMLElement) {
-		// printing all URLs associated with the <a> tag on the page
-		e.ForEach("li", func(i int, h *colly.HTMLElement) {
-			card := interfaces.Card{
-				Url:  h.ChildAttr("a", "href"),
-				Name: h.ChildText(".AHeroStageItems__Item--Headline"),
-				Date: h.ChildText(".AHeroStageItems__Item--SubHeadline"),
-				Img:  "https://lidl.pt" + h.ChildAttr("img", "src"),
+	var flyerPageUrls []string
+
+	for {
+		flyerPages := page.MustElements(".page--current")
+		foundFinalPage := false
+		var nextPage *rod.Element
+
+		for _, flyer := range flyerPages {
+			url := flyer.MustElement("img").MustProperty("src")
+			flyerPageUrls = append(flyerPageUrls, url.String())
+
+			navigationArrows, _ := page.Timeout(1 * time.Second).Elements(".button--navigation-lidl")
+
+			if len(navigationArrows) == 1 {
+				previousPageButtonText := *navigationArrows[0].MustAttribute("aria-label")
+				if previousPageButtonText == "Página anterior" {
+
+					foundFinalPage = true
+
+					break
+				}
 			}
-			cards = append(cards, card)
-		})
-	})
+			// Get last arrow button, it will be the move forward one
+			// As i checked that when there's just one, it isn't the move backwards one
+			nextPage = navigationArrows[len(navigationArrows)-1]
+		}
 
-	c.OnScraped(func(r *colly.Response) {
-		fmt.Println(r.Request.URL, " scraped!")
-	})
+		if foundFinalPage {
+			break
+		}
 
-	c.Visit("https://www.lidl.pt")
+		nextPage.MustClick()
+	}
 
-	return filterParkside(cards)
+	return flyerPageUrls
+}
+
+func GetFlyers() []interfaces.Flyer {
+	flyers := crawlFlyers()
+
+	var wg sync.WaitGroup
+
+	for i := range flyers {
+		wg.Add(1)
+		go func(flyer *interfaces.Flyer) {
+			defer wg.Done()
+
+			images := parseFlyer(flyer.Url)
+			flyer.Images = images
+		}(&flyers[i])
+	}
+
+	wg.Wait()
+
+	return flyers
 }
