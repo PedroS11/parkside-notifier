@@ -1,7 +1,7 @@
 # Parkside Notifier
 
 A Telegram bot that scrapes the Portuguese Lidl website to check the availability of Parkside products. It uses the GPT-4o Mini model to analyze PDFs and extract information about Parkside items. 
-You can join be accessing this [link](https://t.me/parksideNotifications).
+You can join by accessing this [link](https://t.me/parksideNotifications).
 
 ## How to use
 
