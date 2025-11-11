@@ -1,7 +1,7 @@
-# Dockerfile References: https://docs.docker.com/engine/reference/builder/
+# Build stage
 
 # Start from golang:1.12-alpine base image
-FROM golang:1.24
+FROM golang:1.24 AS builder
 
 # Add Maintainer Info
 LABEL maintainer="Pedro Silva <pedrosilva1137work@gmail.com>"
@@ -16,13 +16,20 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # Copy the source from the current directory to the Working Directory inside the container
-COPY ./src .
+COPY ./src ./src
 
 # Build the Go app
-RUN go build -o main .
+RUN go build -o main ./src
 
-# Expose port 8080 to the outside world
+
+
+# Run stage
+FROM debian:bookworm-slim
+
+WORKDIR /root/
+
+COPY --from=builder /app/main .
+
 EXPOSE 8080
 
-# Run the executable
 CMD ["./main"]
