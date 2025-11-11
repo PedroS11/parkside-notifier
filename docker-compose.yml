@@ -2,22 +2,22 @@ version: '3'
 
 services:
   rqlite:
-      image: rqlite/rqlite:latest
-      container_name: myrqlite-container-1
-      hostname: myrqlite-host-1
-      restart: unless-stopped
-      volumes:
-        - ./data:/rqlite/file/data
-      ports:
-        - "4001:4001"
-        - "4002:4002"
-      env_file: .env
-      healthcheck:
-        test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://myrqlite-host-1:4001/status"]
-        interval: 10s
-        timeout: 5s
-        retries: 5
-        start_period: 30s
+    image: rqlite/rqlite:latest
+    container_name: myrqlite-container-1
+    hostname: myrqlite-host-1
+    restart: unless-stopped
+    volumes:
+      - ./data:/rqlite/file/data
+    ports:
+      - "4001:4001"
+      - "4002:4002"
+    env_file: .env
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://myrqlite-host-1:4001/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
   
   parkside-notifier:
     image: "parkside-notifier"
@@ -28,10 +28,13 @@ services:
       - "8080:8080" 
     restart: unless-stopped
     depends_on: 
+      - rod-service
       - rqlite
     env_file: .env
 
-  rod:
+  rod-service:
+    image: ghcr.io/go-rod/rod
+    hostname: rod
+    restart: unless-stopped
     ports:
       - 7317:7317
-    image: ghcr.io/go-rod/rod

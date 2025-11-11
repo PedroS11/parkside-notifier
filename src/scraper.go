@@ -1,32 +1,23 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
+	"os"
 	"parksideNotifier/src/interfaces"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/launcher"
 )
 
-func crawlFlyers() []interfaces.Flyer {
-	l := launcher.MustNewManaged("")
-
-	// You can also set any flag remotely before you launch the remote browser.
-	// Available flags: https://peter.sh/experiments/chromium-command-line-switches
-	l.Set("disable-gpu").Delete("disable-gpu")
-
-	// Launch with headful mode
-	l.Headless(false).XVFB("--server-num=5", "--server-args=-screen 0 1600x900x16")
-
-	browser := rod.New().Client(l.MustClient()).MustConnect()
+func crawlFlyers(browser *rod.Browser) []interfaces.Flyer {
 
 	page := browser.MustPage("https://www.lidl.pt/c/folhetos/s10020672")
 
 	page.MustElement("#onetrust-reject-all-handler").MustClick()
-	// Get just the first one as it's Semanais
+
 	subCategory := page.MustElement(".subcategory")
 	promotionCards := subCategory.MustElements("a")
 
@@ -52,40 +43,41 @@ func crawlFlyers() []interfaces.Flyer {
 	return cards
 }
 
-func parseFlyer(flyerUrl string) []string {
-	page := rod.New().NoDefaultDevice().MustConnect().MustPage(flyerUrl)
-	page.MustWindowFullscreen()
+func parseFlyer(browser *rod.Browser, flyerUrl string) []string {
+	page := browser.MustPage(flyerUrl)
 
-	slog.Info("Crawling", slog.String("url", flyerUrl))
+	// Reduce browser size to only show one page instead of displaying two pages from the PDF
+	page.MustSetViewport(912, 1368, 1, false)
 
-	// Reject cookies
-	page.MustElement("#onetrust-reject-all-handler").MustClick()
+	slog.Info(fmt.Sprintf("Crawling %s", slog.String("url", flyerUrl)))
 
 	var flyerPageUrls []string
 
+	foundFirstPage := false
+
 	for {
-		flyerPages := page.MustElements(".page--current")
+		flyerPage := page.MustElement(".page--current")
+
 		foundFinalPage := false
 		var nextPage *rod.Element
 
-		for _, flyer := range flyerPages {
-			url := flyer.MustElement("img").MustProperty("src")
-			flyerPageUrls = append(flyerPageUrls, url.String())
+		url := flyerPage.MustElement("img").MustProperty("src")
 
-			navigationArrows, _ := page.Timeout(1 * time.Second).Elements(".button--navigation-lidl")
+		flyerPageUrls = append(flyerPageUrls, url.String())
 
-			if len(navigationArrows) == 1 {
-				previousPageButtonText := *navigationArrows[0].MustAttribute("aria-label")
-				if previousPageButtonText == "Página anterior" {
+		navigationArrows, _ := page.Elements(".button--navigation-lidl")
 
-					foundFinalPage = true
-
-					break
-				}
+		// First page or Last page
+		if len(navigationArrows) == 1 {
+			if foundFirstPage {
+				foundFinalPage = true
+			} else {
+				foundFirstPage = true
+				nextPage = navigationArrows[0]
 			}
-			// Get last arrow button, it will be the move forward one
-			// As i checked that when there's just one, it isn't the move backwards one
-			nextPage = navigationArrows[len(navigationArrows)-1]
+		} else {
+			nextPage = navigationArrows[1]
+
 		}
 
 		if foundFinalPage {
@@ -95,11 +87,34 @@ func parseFlyer(flyerUrl string) []string {
 		nextPage.MustClick()
 	}
 
+	slog.Info(fmt.Sprintf("Flyer %s has %d pages", slog.String("url", flyerUrl), len(flyerPageUrls)))
+
 	return flyerPageUrls
 }
 
 func GetFlyers() []interfaces.Flyer {
-	flyers := crawlFlyers()
+	// This example is to launch a browser remotely, not connect to a running browser remotely,
+	// to connect to a running browser check the "../connect-browser" example.
+	// Rod provides a docker image for beginners, run the below to start a launcher.Manager:
+	//
+	//     docker run --rm -p 7317:7317 ghcr.io/go-rod/rod
+	//
+	// For available CLI flags run: docker run --rm ghcr.io/go-rod/rod rod-manager -h
+	// For more information, check the doc of launcher.Manager
+	l := launcher.MustNewManaged(os.Getenv("ROD_URL"))
+
+	// You can also set any flag remotely before you launch the remote browser.
+	// Available flags: https://peter.sh/experiments/chromium-command-line-switches
+	l.Set("disable-gpu").Delete("disable-gpu")
+
+	// Launch with headful mode
+	l.Headless(true).XVFB("--server-num=5", "--server-args=-screen 0 1600x900x16")
+
+	browser := rod.New().Client(l.MustClient()).MustConnect()
+
+	flyers := crawlFlyers(browser)
+
+	slog.Info(fmt.Sprintf("There are %d flyers", len(flyers)))
 
 	var wg sync.WaitGroup
 
@@ -108,7 +123,7 @@ func GetFlyers() []interfaces.Flyer {
 		go func(flyer *interfaces.Flyer) {
 			defer wg.Done()
 
-			images := parseFlyer(flyer.Url)
+			images := parseFlyer(browser, flyer.Url)
 			flyer.Images = images
 		}(&flyers[i])
 	}

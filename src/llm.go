@@ -17,7 +17,7 @@ func GetProductsFromUrls(imageUrls []string) ([]interfaces.Product, error) {
 	client := openai.NewClient(option.WithAPIKey(os.Getenv("OPENAI_API_KEY")))
 	ctx := context.Background()
 
-	question := "Analyze this flyer of products, if there're any products from brand Parkside. If no products are found, return an empty array"
+	question := "Analyze these images from flyers of products, if there're any products from brand Parkside return them. If no products are found, return an empty array"
 
 	var inputParams responses.ResponseInputParam
 
@@ -49,6 +49,8 @@ func GetProductsFromUrls(imageUrls []string) ([]interfaces.Product, error) {
 			Content: content,
 		},
 	})
+
+	slog.Info(fmt.Sprintf("Calling OpenAI with %d images\n", len(imageUrls)))
 
 	resp, err := client.Responses.New(ctx, responses.ResponseNewParams{
 		Input:        responses.ResponseNewParamsInputUnion{OfInputItemList: inputParams},
