@@ -76,35 +76,17 @@ func getFlyersAndNotify() {
 
 func main() {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
-	getFlyersAndNotify()
-	// // create a scheduler
-	// s, err := CreateCronJob(getFlyersAndNotify)
-	// if err != nil {
-	// 	LogError("main", err)
-	// 	os.Exit(1)
-	// }
 
-	// // start the scheduler
-	// s.Start()
+	// create a scheduler
+	s, err := CreateCronJob(getFlyersAndNotify)
+	if err != nil {
+		LogError("main", err)
+		os.Exit(1)
+	}
 
-	// // block until you are ready to shut down
-	// select {}
+	// start the scheduler
+	s.Start()
 
-	// ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
-	// defer cancel()
-
-	// bot, ctx := Start(ctx)
-
-	// flyer := interfaces.Flyer{
-	// 	Url:          "https://www.lidl.pt/l/pt/folhetos/novidades-a-partir-de-10-11/view/flyer/page/1?lf=HHZ",
-	// 	Name:         "Novidades a partir de 10€",
-	// 	Date:         "2025-11-11",
-	// 	PreviewImage: "https://www.lidl.pt/l/pt/folhetos/novidades-a-partir-de-10-11/view/flyer/page/1?lf=HHZ",
-	// 	Images: []string{
-	// 		"https://www.lidl.pt/l/pt/folhetos/novidades-a-partir-de-10-11/view/flyer/page/1?lf=HHZ",
-	// 	},
-	// }
-
-	// SendMediaGroup(bot, ctx, flyer)
-
+	// block until you are ready to shut down
+	select {}
 }

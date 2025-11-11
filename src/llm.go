@@ -50,7 +50,7 @@ func GetProductsFromUrls(imageUrls []string) ([]interfaces.Product, error) {
 		},
 	})
 
-	slog.Info(fmt.Sprintf("Calling OpenAI for %d images with input: %v\n", len(imageUrls), inputParams))
+	slog.Info(fmt.Sprintf("Calling OpenAI with %d images\n", len(imageUrls)))
 
 	resp, err := client.Responses.New(ctx, responses.ResponseNewParams{
 		Input:        responses.ResponseNewParamsInputUnion{OfInputItemList: inputParams},

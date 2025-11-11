@@ -49,7 +49,7 @@ func parseFlyer(browser *rod.Browser, flyerUrl string) []string {
 	// Reduce browser size to only show one page instead of displaying two pages from the PDF
 	page.MustSetViewport(912, 1368, 1, false)
 
-	fmt.Println("Crawling", slog.String("url", flyerUrl))
+	slog.Info(fmt.Sprintf("Crawling %s", slog.String("url", flyerUrl)))
 
 	var flyerPageUrls []string
 
@@ -57,7 +57,7 @@ func parseFlyer(browser *rod.Browser, flyerUrl string) []string {
 
 	for {
 		flyerPage := page.MustElement(".page--current")
-		fmt.Println(page.MustInfo().URL)
+
 		foundFinalPage := false
 		var nextPage *rod.Element
 
@@ -67,6 +67,7 @@ func parseFlyer(browser *rod.Browser, flyerUrl string) []string {
 
 		navigationArrows, _ := page.Elements(".button--navigation-lidl")
 
+		// First page or Last page
 		if len(navigationArrows) == 1 {
 			if foundFirstPage {
 				foundFinalPage = true
@@ -85,6 +86,8 @@ func parseFlyer(browser *rod.Browser, flyerUrl string) []string {
 
 		nextPage.MustClick()
 	}
+
+	slog.Info(fmt.Sprintf("Flyer %s has %d pages", slog.String("url", flyerUrl), len(flyerPageUrls)))
 
 	return flyerPageUrls
 }
