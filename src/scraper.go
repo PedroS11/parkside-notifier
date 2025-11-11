@@ -2,6 +2,7 @@ package main
 
 import (
 	"log/slog"
+	"os"
 	"parksideNotifier/src/interfaces"
 	"strings"
 	"sync"
@@ -12,7 +13,7 @@ import (
 )
 
 func crawlFlyers() []interfaces.Flyer {
-	l := launcher.MustNewManaged("")
+	l := launcher.MustNewManaged(os.Getenv("ROD_URL"))
 
 	// You can also set any flag remotely before you launch the remote browser.
 	// Available flags: https://peter.sh/experiments/chromium-command-line-switches
@@ -23,10 +24,13 @@ func crawlFlyers() []interfaces.Flyer {
 
 	browser := rod.New().Client(l.MustClient()).MustConnect()
 
+	// You may want to start a server to watch the screenshots of the remote browser.
+	launcher.Open(browser.ServeMonitor(""))
+
 	page := browser.MustPage("https://www.lidl.pt/c/folhetos/s10020672")
 
 	page.MustElement("#onetrust-reject-all-handler").MustClick()
-	// Get just the first one as it's Semanais
+
 	subCategory := page.MustElement(".subcategory")
 	promotionCards := subCategory.MustElements("a")
 
