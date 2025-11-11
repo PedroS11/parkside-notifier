@@ -26,6 +26,9 @@ RUN go build -o main ./src
 # Run stage
 FROM debian:bookworm-slim
 
+# Install CA certificates for Telegram calls as debian:bookworm-slim image doesn't have them by default
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /root/
 
 COPY --from=builder /app/main .

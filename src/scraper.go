@@ -51,11 +51,6 @@ func parseFlyer(browser *rod.Browser, flyerUrl string) []string {
 
 	fmt.Println("Crawling", slog.String("url", flyerUrl))
 
-	// Reject cookies
-	// page.MustElement("#onetrust-reject-all-handler").MustClick()
-
-	fmt.Println("COOKIES")
-
 	var flyerPageUrls []string
 
 	foundFirstPage := false
@@ -71,8 +66,6 @@ func parseFlyer(browser *rod.Browser, flyerUrl string) []string {
 		flyerPageUrls = append(flyerPageUrls, url.String())
 
 		navigationArrows, _ := page.Elements(".button--navigation-lidl")
-
-		fmt.Println("DEPOIS", len(navigationArrows))
 
 		if len(navigationArrows) == 1 {
 			if foundFirstPage {
@@ -116,14 +109,7 @@ func GetFlyers() []interfaces.Flyer {
 
 	browser := rod.New().Client(l.MustClient()).MustConnect()
 
-	// You may want to start a server to watch the screenshots of the remote browser.
-	// launcher.Open(browser.ServeMonitor(""))
-
 	flyers := crawlFlyers(browser)
-
-	// flyers := []interfaces.Flyer{{
-	// 	Url: "https://www.lidl.pt/l/pt/folhetos/novidades-a-partir-de-10-11/view/flyer/page/1?lf=HHZ",
-	// }}
 
 	slog.Info(fmt.Sprintf("There are %d flyers", len(flyers)))
 
