@@ -27,7 +27,16 @@ curl --location 'http://127.0.0.1:4001/db/execute?pretty=null&timings=null' \
 
 ## Local development
 
-1. On the docker-compose.yml, comment the go lang service and run
+1. On the docker-compose.yml, comment the parkside-notifier service
+2. Create an .env file like the .env.example one but replace the following env vars
+
+```
+HTTP_ADDR=127.0.0.1:4001
+RAFT_ADDR=127.0.0.1:4002
+ROD_URL=ws://127.0.0.1:7317
+```
+
+3. Run
 
 #### Podman
 > podman compose up
@@ -36,7 +45,7 @@ curl --location 'http://127.0.0.1:4001/db/execute?pretty=null&timings=null' \
 > docker compose up
 
 
-2. Create the database by call this endpoint
+4. Create the database by call this endpoint
 
 ```
 curl --location 'http://127.0.0.1:4001/db/execute?pretty=null&timings=null' \
@@ -46,8 +55,6 @@ curl --location 'http://127.0.0.1:4001/db/execute?pretty=null&timings=null' \
 ]'
 ```
 
-3. Create an .env file like the .env.example one
-
-4. Run in the root folder
+5. Run in the root folder
 > go run ./src
 
