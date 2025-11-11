@@ -76,17 +76,17 @@ func getFlyersAndNotify() {
 
 func main() {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
+	getFlyersAndNotify()
+	// // create a scheduler
+	// s, err := CreateCronJob(getFlyersAndNotify)
+	// if err != nil {
+	// 	LogError("main", err)
+	// 	os.Exit(1)
+	// }
 
-	// create a scheduler
-	s, err := CreateCronJob(getFlyersAndNotify)
-	if err != nil {
-		LogError("main", err)
-		os.Exit(1)
-	}
+	// // start the scheduler
+	// s.Start()
 
-	// start the scheduler
-	s.Start()
-
-	// block until you are ready to shut down
-	select {}
+	// // block until you are ready to shut down
+	// select {}
 }

@@ -30,4 +30,8 @@ services:
     depends_on: 
       - rqlite
     env_file: .env
- 
+
+  rod:
+    ports:
+      - 7317:7317
+    image: ghcr.io/go-rod/rod
