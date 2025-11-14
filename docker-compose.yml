@@ -3,7 +3,7 @@ version: '3'
 services:
   rqlite:
     image: rqlite/rqlite:latest
-    container_name: myrqlite-container-1
+    container_name: myrqlite
     hostname: myrqlite-host-1
     restart: unless-stopped
     volumes:
@@ -21,6 +21,7 @@ services:
   
   parkside-notifier:
     image: "parkside-notifier"
+    container_name: parkside-notifier
     build:
       context: .
       dockerfile: Dockerfile
@@ -34,6 +35,7 @@ services:
 
   rod-service:
     image: ghcr.io/go-rod/rod
+    container_name: rod-service
     hostname: rod
     restart: unless-stopped
     ports:
