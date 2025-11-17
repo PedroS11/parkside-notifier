@@ -50,7 +50,7 @@ func GetProductsFromUrls(imageUrls []string) ([]interfaces.Product, error) {
 		},
 	})
 
-	slog.Info(fmt.Sprintf("Calling OpenAI with %d images\n", len(imageUrls)))
+	slog.Info("Calling OpenAI with", "inputParams", inputParams)
 
 	resp, err := client.Responses.New(ctx, responses.ResponseNewParams{
 		Input:        responses.ResponseNewParamsInputUnion{OfInputItemList: inputParams},
@@ -65,7 +65,8 @@ func GetProductsFromUrls(imageUrls []string) ([]interfaces.Product, error) {
 
 	// Response sometimes comes as ```json'[{"name":"Parksidе Aspirador/ Soprador de Folhas Elétrico 2600 W","price":29.99}]'``` so we need to clean it
 	jsonProducts := CleanJsonString(resp.OutputText())
-	fmt.Printf("OpenAI Response: %s\n", jsonProducts)
+
+	slog.Info("OpenAI response", "products", jsonProducts)
 
 	// Parse the JSON response
 	var products []interfaces.Product
