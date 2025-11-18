@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
+	"log/slog"
 	"os"
 
 	rqlitehttp "github.com/rqlite/rqlite-go-http"
@@ -73,7 +73,7 @@ func insertUrl(client *rqlitehttp.Client, ctx context.Context, url string) (*rql
 		return nil, errors.New(errorMessage)
 	}
 
-	fmt.Printf("ExecuteResponse: %+v\n", response)
+	slog.Info("Calling insertUrl", "ExecuteResponse", response)
 
 	return response, nil
 }
@@ -81,8 +81,8 @@ func insertUrl(client *rqlitehttp.Client, ctx context.Context, url string) (*rql
 func UpdateMessage(client *rqlitehttp.Client, ctx context.Context, url string, notify int) (*rqlitehttp.ExecuteResponse, error) {
 	response, err := client.Execute(ctx, rqlitehttp.SQLStatements{
 		{
-			SQL:              "UPDATE message SET url = ? , notified = ?",
-			PositionalParams: []any{url, notify},
+			SQL:              "UPDATE message SET notified = ? WHERE url = ?",
+			PositionalParams: []any{notify, url},
 		},
 	}, nil)
 
@@ -98,7 +98,7 @@ func UpdateMessage(client *rqlitehttp.Client, ctx context.Context, url string, n
 		return nil, errors.New(errorMessage)
 	}
 
-	fmt.Printf("ExecuteResponse: %+v\n", response)
+	slog.Info("Calling UpdateMessage", "ExecuteResponse", response)
 
 	return response, nil
 }
