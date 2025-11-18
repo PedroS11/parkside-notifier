@@ -12,7 +12,7 @@ import (
 func CreateClient() *rqlitehttp.Client {
 	client, err := rqlitehttp.NewClient("http://"+os.Getenv("HTTP_ADDR"), nil)
 	if err != nil {
-		LogError("DB CreateClient error", err)
+		slog.Error("DB CreateClient", "error", err.Error())
 
 		panic(err)
 	}
@@ -29,7 +29,7 @@ func WasUrlNotified(client *rqlitehttp.Client, ctx context.Context, url string) 
 	}, nil)
 
 	if err != nil {
-		LogError("DB WasUrlNotified error", err)
+		slog.Error("WasUrlNotified", "error", err.Error())
 		return false, err
 	}
 
@@ -62,14 +62,14 @@ func insertUrl(client *rqlitehttp.Client, ctx context.Context, url string) (*rql
 	}, nil)
 
 	if err != nil {
-		LogError("DB insertUrl error", err)
+		slog.Error("insertUrl error", err.Error(), url)
 		return nil, err
 	}
 
 	errored, _, errorMessage := response.HasError()
 
 	if errored {
-		LogError("insertUrl error", errors.New(errorMessage))
+		slog.Error("inserted url error", "error", errorMessage, "url", url)
 		return nil, errors.New(errorMessage)
 	}
 
@@ -87,14 +87,15 @@ func UpdateMessage(client *rqlitehttp.Client, ctx context.Context, url string, n
 	}, nil)
 
 	if err != nil {
-		LogError("DB UpdateMessage error", err)
+		slog.Error("UpdateMessage", "error", err.Error(), "notify", notify, "url", url)
 		return nil, err
 	}
 
 	errored, _, errorMessage := response.HasError()
 
 	if errored {
-		LogError("UpdateMessage error", errors.New(errorMessage))
+		slog.Error("Updated message", "error", errorMessage)
+
 		return nil, errors.New(errorMessage)
 	}
 

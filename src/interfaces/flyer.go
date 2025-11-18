@@ -6,5 +6,5 @@ type Flyer struct {
 	Date         string    `json:"date"`
 	PreviewImage string    `json:"preview_image"`
 	Images       []string  `json:"images"`
-	Products     []Product `json:products`
+	Products     []Product `json:"products"`
 }

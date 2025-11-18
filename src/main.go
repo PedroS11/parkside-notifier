@@ -54,7 +54,16 @@ func getFlyersAndNotify() {
 			}
 
 			if len(products) == 0 {
-				UpdateMessage(client, ctx, flyer.Url, 1)
+				_, err := UpdateMessage(client, ctx, flyer.Url, 1)
+
+				if err != nil {
+					errorMessage := fmt.Sprintf("Error updating message: %s", err.Error())
+
+					slog.Error(errorMessage)
+					SendErrorMessage(bot, ctx, errorMessage)
+
+					continue
+				}
 
 				slog.Warn(fmt.Sprintf("Flyer %s %s has no Parkside products", flyer.Name, flyer.Url))
 				continue
@@ -65,7 +74,17 @@ func getFlyersAndNotify() {
 			slog.Info(fmt.Sprintf("Flyer %s has %v\n", flyer.Url, flyer.Products))
 
 			SendMediaGroup(bot, ctx, flyer)
-			UpdateMessage(client, ctx, flyer.Url, 1)
+
+			_, err = UpdateMessage(client, ctx, flyer.Url, 1)
+
+			if err != nil {
+				errorMessage := fmt.Sprintf("Error updating message: %s", err.Error())
+
+				slog.Error(errorMessage)
+				SendErrorMessage(bot, ctx, errorMessage)
+
+				continue
+			}
 		} else {
 			slog.Info(fmt.Sprintf("Flyer %s on %s was already processed", flyer.Name, flyer.Url))
 		}
@@ -80,7 +99,7 @@ func main() {
 	// create a scheduler
 	s, err := CreateCronJob(getFlyersAndNotify)
 	if err != nil {
-		LogError("main", err)
+		slog.Error("main", "error", err.Error())
 		os.Exit(1)
 	}
 

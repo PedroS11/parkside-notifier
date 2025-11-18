@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"parksideNotifier/src/interfaces"
 	"time"
@@ -19,7 +20,7 @@ func Start(ctx context.Context) (*bot.Bot, context.Context) {
 	b, err := bot.New(os.Getenv("TELEGRAM_BOT_TOKEN"), opts...)
 
 	if err != nil {
-		LogError("Telegram Start", err)
+		slog.Error("Telegram Start", "error", err.Error())
 		os.Exit(1)
 	}
 
@@ -52,7 +53,7 @@ func SendMediaGroup(b *bot.Bot, ctx context.Context, flyer interfaces.Flyer) {
 	})
 
 	if err != nil {
-		LogError("ERROR", err)
+		slog.Error("SendMediaGroup", "error", err.Error())
 	}
 }
 
@@ -63,6 +64,6 @@ func SendErrorMessage(b *bot.Bot, ctx context.Context, message string) {
 	})
 
 	if err != nil {
-		LogError("SendErrorMessage error", err)
+		slog.Error("SendErrorMessage", "error", err.Error())
 	}
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log/slog"
 	"time"
 
 	"github.com/go-co-op/gocron/v2"
@@ -9,7 +10,7 @@ import (
 func CreateCronJob(job func()) (gocron.Scheduler, error) {
 	s, err := gocron.NewScheduler()
 	if err != nil {
-		LogError("Scheduler CreateCronJob", err)
+		slog.Error("Scheduler CreateCronJob", "error", err.Error())
 		return nil, err
 	}
 
@@ -23,7 +24,7 @@ func CreateCronJob(job func()) (gocron.Scheduler, error) {
 	)
 
 	if err != nil {
-		LogError("Scheduler error:", err)
+		slog.Error("Scheduler NewJob", "error", err.Error())
 		return nil, err
 	}
 
