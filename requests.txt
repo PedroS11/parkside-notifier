@@ -9,3 +9,17 @@ curl --location 'http://127.0.0.1:4001/db/execute?pretty=null&timings=null' \
 --data '[
     "DROP TABLE message"
 ]'
+
+curl -G 'localhost:4001/db/query?pretty&timings' --data-urlencode 'q=SELECT * FROM message'
+
+curl --location 'http://127.0.0.1:4001/db/execute?pretty=null&timings=null' \
+--header 'Content-Type: application/json' \
+--data '[
+    "INSERT INTO message(url, notified) VALUES(\"https://www.lidl.pt/l/pt/folhetos/novidades-a-partir-de-17-11/view/flyer/page/1?lf=HHZ\", 1)"
+]'
+
+curl --location 'http://127.0.0.1:4001/db/execute?pretty=null&timings=null' \
+--header 'Content-Type: application/json' \
+--data '[
+    "UPDATE message SET notified = 1 WHERE url = \"https://www.lidl.pt/l/pt/folhetos/novidades-a-partir-de-17-11/view/flyer/page/1?lf=HHZ\""
+]'
