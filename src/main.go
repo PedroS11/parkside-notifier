@@ -17,6 +17,8 @@ func getFlyersAndNotify() {
 
 	client := CreateClient()
 
+	slog.Info("Starting execution")
+
 	flyers := GetFlyers()
 
 	slog.Info(fmt.Sprintf("Found %d flyers", len(flyers)))
@@ -95,6 +97,8 @@ func getFlyersAndNotify() {
 
 func main() {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
+
+	slog.Info("Starting Bot")
 
 	// create a scheduler
 	s, err := CreateCronJob(getFlyersAndNotify)
