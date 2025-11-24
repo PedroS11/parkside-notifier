@@ -16,7 +16,7 @@ func CreateCronJob(job func()) (gocron.Scheduler, error) {
 
 	_, err = s.NewJob(
 		gocron.DurationJob(
-			2*time.Minute,
+			12*time.Hour,
 		),
 		gocron.NewTask(
 			job,
