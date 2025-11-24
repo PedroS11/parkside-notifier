@@ -7,6 +7,7 @@ import (
 	"parksideNotifier/src/interfaces"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/launcher"
@@ -16,7 +17,11 @@ func crawlFlyers(browser *rod.Browser) []interfaces.Flyer {
 
 	page := browser.MustPage("https://www.lidl.pt/c/folhetos/s10020672")
 
-	page.MustElement("#onetrust-reject-all-handler").MustClick()
+	// After the first execution, the cookies banner doesn't show again
+	elem, err := page.Timeout(5 * time.Second).Element("#onetrust-reject-all-handler")
+	if err == nil && elem != nil {
+		elem.MustClick()
+	}
 
 	subCategory := page.MustElement(".subcategory")
 	promotionCards := subCategory.MustElements("a")
