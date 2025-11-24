@@ -127,5 +127,7 @@ func GetFlyers() []interfaces.Flyer {
 		flyers[i].Images = images
 	}
 
+	browser.Close()
+
 	return flyers
 }
