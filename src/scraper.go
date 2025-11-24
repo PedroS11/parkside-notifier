@@ -14,7 +14,6 @@ import (
 )
 
 func crawlFlyers(browser *rod.Browser) []interfaces.Flyer {
-
 	page := browser.MustPage("https://www.lidl.pt/c/folhetos/s10020672")
 	defer page.MustClose()
 
@@ -51,6 +50,7 @@ func crawlFlyers(browser *rod.Browser) []interfaces.Flyer {
 
 func parseFlyer(browser *rod.Browser, flyerUrl string) []string {
 	page := browser.MustPage(flyerUrl)
+	defer page.MustClose()
 
 	// Reduce browser size to only show one page instead of displaying two pages from the PDF
 	page.MustSetViewport(912, 1368, 1, false)
