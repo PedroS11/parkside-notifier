@@ -16,6 +16,7 @@ import (
 func crawlFlyers(browser *rod.Browser) []interfaces.Flyer {
 
 	page := browser.MustPage("https://www.lidl.pt/c/folhetos/s10020672")
+	defer page.MustClose()
 
 	// After the first execution, the cookies banner doesn't show again
 	elem, err := page.Timeout(5 * time.Second).Element("#onetrust-reject-all-handler")
