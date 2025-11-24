@@ -6,6 +6,7 @@ import (
 	"os"
 	"parksideNotifier/src/interfaces"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-rod/rod"
@@ -121,11 +122,19 @@ func GetFlyers() []interfaces.Flyer {
 
 	slog.Info(fmt.Sprintf("There are %d flyers", len(flyers)))
 
-	// Process sequentially instead of concurrently
+	var wg sync.WaitGroup
+
 	for i := range flyers {
-		images := parseFlyer(browser, flyers[i].Url)
-		flyers[i].Images = images
+		wg.Add(1)
+		go func(flyer *interfaces.Flyer) {
+			defer wg.Done()
+
+			images := parseFlyer(browser, flyer.Url)
+			flyer.Images = images
+		}(&flyers[i])
 	}
+
+	wg.Wait()
 
 	browser.Close()
 
