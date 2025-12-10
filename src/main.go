@@ -75,7 +75,19 @@ func getFlyersAndNotify() {
 
 			slog.Info(fmt.Sprintf("Flyer %s has %v\n", flyer.Url, flyer.Products))
 
-			SendMediaGroup(bot, ctx, flyer)
+			_, err = SendMediaGroup(bot, ctx, flyer)
+			if err != nil {
+				errorMessage := fmt.Sprintf("Error sending message to telegram: %s", err.Error())
+
+				slog.Error(errorMessage)
+
+				_, err = SendErrorMessage(bot, ctx, errorMessage)
+				if err != nil {
+					slog.Error(fmt.Sprintf("Error sending error message to telegram: %s", err.Error()))
+				}
+
+				continue
+			}
 
 			_, err = UpdateMessage(client, ctx, flyer.Url, 1)
 
@@ -83,7 +95,11 @@ func getFlyersAndNotify() {
 				errorMessage := fmt.Sprintf("Error updating message: %s", err.Error())
 
 				slog.Error(errorMessage)
-				SendErrorMessage(bot, ctx, errorMessage)
+
+				_, err = SendErrorMessage(bot, ctx, errorMessage)
+				if err != nil {
+					slog.Error(fmt.Sprintf("Error sending error message to telegram: %s", err.Error()))
+				}
 
 				continue
 			}
