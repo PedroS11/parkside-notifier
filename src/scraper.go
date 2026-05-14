@@ -108,6 +108,7 @@ func GetFlyers() []interfaces.Flyer {
 	// For available CLI flags run: docker run --rm ghcr.io/go-rod/rod rod-manager -h
 	// For more information, check the doc of launcher.Manager
 	l := launcher.MustNewManaged(os.Getenv("ROD_URL"))
+	defer l.Cleanup()
 
 	// You can also set any flag remotely before you launch the remote browser.
 	// Available flags: https://peter.sh/experiments/chromium-command-line-switches
@@ -117,6 +118,7 @@ func GetFlyers() []interfaces.Flyer {
 	l.Headless(true).XVFB("--server-num=5", "--server-args=-screen 0 1600x900x16")
 
 	browser := rod.New().Client(l.MustClient()).MustConnect()
+	defer browser.MustClose()
 
 	flyers := crawlFlyers(browser)
 
@@ -135,8 +137,6 @@ func GetFlyers() []interfaces.Flyer {
 	}
 
 	wg.Wait()
-
-	browser.Close()
 
 	return flyers
 }
